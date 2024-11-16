@@ -5,7 +5,8 @@ import { auth } from '@clerk/nextjs/server';
 import { UserButton } from '@clerk/nextjs';
 
 const Navbar = async () => {
-  const { userId } = await auth();
+  // const { userId } = await auth();
+  const userId = false
 
   console.log(userId)
 

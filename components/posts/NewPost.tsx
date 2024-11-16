@@ -1,12 +1,11 @@
 'use client';
 import * as React from 'react';
-
+import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
@@ -15,10 +14,12 @@ import { Label } from '@/components/ui/label';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import z from 'zod';
+import { useRouter } from 'next/navigation';
+import { addPostAction, revalidatePosts } from '@/actions/postActions';
 
 const formSchema = z.object({
-  postContent: z.string(),
-  image: z.string(),
+  postContent: z.string().min(5),
+  image: z.any(),
 });
 
 type formType = z.infer<typeof formSchema>;
@@ -27,14 +28,36 @@ export function NewPost() {
   const {
     handleSubmit,
     register,
-    formState: { errors, isLoading },
+    formState: { errors },
   } = useForm<formType>({
     resolver: zodResolver(formSchema),
   });
+  const [loading, setLoading] = React.useState(false);
+  const router = useRouter();
 
-  const submitHandler: SubmitHandler<formType> = (data) => {
-    console.log('hey tehrerere');
-    console.log(data);
+  const submitHandler: SubmitHandler<formType> = async (data) => {
+    setLoading(true);
+    try {
+      let bytes = null;
+      if (data.image[0]) {
+        const arrayBuffer = await data.image[0].arrayBuffer();
+        bytes = Buffer.from(arrayBuffer);
+      }
+
+      const res = await addPostAction('2', {
+        postContent: data.postContent,
+        image: JSON.stringify(bytes),
+      });
+
+      if (res.status) {
+        router.push('/feed');
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+    }
+    setLoading(false);
   };
 
   return (
@@ -50,32 +73,26 @@ export function NewPost() {
               <Label htmlFor="content">Content</Label>
               <Input
                 {...register('postContent')}
-                id="content"
                 placeholder="Say something..."
               />
+              {errors.postContent && <p>{errors.postContent.message}</p>}
             </div>
             <div>
               <Label htmlFor="content">Upload an image</Label>
               <Input
                 {...register('image')}
-                id="content"
                 type="file"
                 className="w-fit"
                 placeholder="Say something..."
               />
+              {errors.image && <p>errornous input</p>}
             </div>
           </div>
-          <Button type="submit" className="w-full">
-            Post
+          <Button disabled={loading} type="submit" className="w-full">
+            {loading ? 'Loading' : 'Post'}
           </Button>
-          <button>submit </button>
         </form>
       </CardContent>
-      {/* <CardFooter className="flex justify-between">
-        <Button disabled={isLoading} className="w-full">
-          Post
-        </Button>
-      </CardFooter> */}
     </Card>
   );
 }

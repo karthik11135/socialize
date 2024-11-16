@@ -28,7 +28,10 @@ model Post {
   userId String
   likes Int @default(0)
   picture String?
+  createdAt DateTime @default(now())
+
   comments Comment[]
+
 
   user User @relation(fields: [userId], references: [userId])
 }
