@@ -7,6 +7,8 @@ import { FaCommentAlt } from 'react-icons/fa';
 import { HiMiniArrowUturnLeft } from 'react-icons/hi2';
 import Image from 'next/image';
 import { likePostAction } from '@/actions/postActions';
+import { redirect } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 
 interface postProps {
   postId: number;
@@ -26,11 +28,17 @@ const Post = ({
   postId,
 }: postProps) => {
   const [inc, setInc] = useState(true);
+  const router = useRouter()
 
   const likeHandler = async () => {
     setInc((prev) => !prev);
     await likePostAction(postId, inc);
   };
+
+  const openPostHandler = () => {
+    console.log('reached')
+    router.push(`/${postId}`)
+  }
 
   return (
     <div
@@ -38,7 +46,7 @@ const Post = ({
         picture && picture !== '' && 'row-span-2'
       }  border-neutral-700 rounded h-fit  border`}
     >
-      <Card className="cursor-pointer px-3 bg-black text-slate-100  border-none rounded">
+      <Card onClick={openPostHandler} className="cursor-pointer px-3 bg-black text-slate-100  border-none rounded">
         <div className=" grid grid-cols-12  items-center  mx-auto py-2">
           <div className="col-span-1">
             <Avatar className="bg-slate-50">

@@ -116,3 +116,26 @@ export const addPostAction = async (
   }
   return { status: 400, ok: false };
 };
+
+export const getPostByIdAction = async (postId: number) => {
+  try{
+    const postById = prisma.post.findUnique({
+      where: {
+        id: postId,
+      }, 
+      include: {
+        comments: {
+          select: {
+            commentContent: true,
+            userId: true,
+          }
+        }
+      }
+    })
+
+    return postById;
+  } catch(err) {
+    console.log(err);
+    return null;
+  }
+}
