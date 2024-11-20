@@ -7,23 +7,23 @@ interface feedProps {
   id: number;
   postContent: string;
   userId: string;
-  likes: number;
+  username: string;
   picture: string | null;
   _count: {
-      comments: number;
+    comments: number;
+    likes: number;
   };
 }
 
-const Feed = async ({posts}:{posts: feedProps[] | null}) => {
-
+const Feed = async ({ posts }: { posts: feedProps[] | null }) => {
   return (
     <div className="grid grid-cols-3 m-10 gap-5">
       {posts?.map((post) => {
         return (
           <Post
             postId={post.id}
-            username={'karthik'}
-            likes={post.likes}
+            username={post.username}
+            likes={post._count.likes}
             content={post.postContent}
             picture={post.picture}
             comments={post._count.comments}

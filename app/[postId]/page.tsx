@@ -12,6 +12,7 @@ interface postIdProps {
 
 const page = async ({ params: postId }: postIdProps) => {
   const post = await getPostByIdAction(Number(postId.postId));
+  console.log(post?.comments);
 
   if (!post) return null;
 
@@ -20,13 +21,13 @@ const page = async ({ params: postId }: postIdProps) => {
       <BackBtn />
       <Post
         postId={post.id}
-        username={'karthik'}
-        likes={post.likes}
+        username={post.username}
+        likes={post._count.likes}
         content={post.postContent}
         picture={post.picture}
         comments={post.comments.length}
       />
-      <CommentBox comments={post.comments} />
+      <CommentBox comments={post.comments.reverse()} postId={post.id} />
     </div>
   );
 };

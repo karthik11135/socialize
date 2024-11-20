@@ -1,7 +1,4 @@
-import Navbar from '@/components/ui/Navbar';
-import { Signin } from '@/components/auth/Signin';
-import { Signup } from '@/components/auth/Signup';
-import Post from '@/components/posts/Post';
+
 
 export default function Home() {
   return (

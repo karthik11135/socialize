@@ -16,6 +16,7 @@ import { useForm, SubmitHandler } from 'react-hook-form';
 import z from 'zod';
 import { useRouter } from 'next/navigation';
 import { addPostAction, revalidatePosts } from '@/actions/postActions';
+import { useAuth } from '@clerk/nextjs';
 
 const formSchema = z.object({
   postContent: z.string().min(5),
@@ -34,6 +35,7 @@ export function NewPost() {
   });
   const [loading, setLoading] = React.useState(false);
   const router = useRouter();
+  const { userId } = useAuth();
 
   const submitHandler: SubmitHandler<formType> = async (data) => {
     setLoading(true);
@@ -44,13 +46,15 @@ export function NewPost() {
         bytes = Buffer.from(arrayBuffer);
       }
 
-      const res = await addPostAction('2', {
-        postContent: data.postContent,
-        image: JSON.stringify(bytes),
-      });
+      if (userId) {
+        const res = await addPostAction(userId, {
+          postContent: data.postContent,
+          image: JSON.stringify(bytes),
+        });
 
-      if (res.status) {
-        router.push('/feed');
+        if (res.status) {
+          router.push('/feed');
+        }
       }
 
       setLoading(false);

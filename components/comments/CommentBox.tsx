@@ -2,19 +2,25 @@ import React from 'react';
 import { Input } from '../ui/input';
 import { Card } from '../ui/card';
 import EachComment from './EachComment';
+import { Button } from '../ui/button';
+import CommentInput from './CommentInput';
 
 interface CommentsProps {
   userId: string;
   commentContent: string;
 }
 
-const CommentBox = ({ comments }: { comments: CommentsProps[] }) => {
+const CommentBox = ({
+  comments,
+  postId,
+}: {
+  comments: CommentsProps[];
+  postId: number;
+}) => {
   return (
     <div className="mt-2">
-      <Input
-        className="text-slate-50 mb-2 placeholder:text-zinc-700"
-        placeholder="Send a comment"
-      />
+      <CommentInput postId={postId} />
+
       <div>
         {comments.map((comment) => {
           return (

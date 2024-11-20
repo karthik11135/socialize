@@ -16,13 +16,17 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { userId } = await auth();
 
   return (
     <html lang="en">
-      <ClerkProvider>
-        <body className={`antialiased min-h-screen bg-black`}>
+      <ClerkProvider dynamic publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}>
+        <body className={`antialiased min-h-screen text-slate-50 bg-black`}>
           <Navbar />
-          <SidebarWrapper>{children}</SidebarWrapper>
+          {userId && <SidebarWrapper>{children}</SidebarWrapper>}
+          {!userId && (
+            <div className="text-center text-slate-50">{children}</div>
+          )}
         </body>
       </ClerkProvider>
     </html>

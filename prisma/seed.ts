@@ -27,6 +27,7 @@ const populateDB = async () => {
         postContent: 'hi there this is' + i + 'here',
         userId: '' + i,
         picture: i === 2 ? url : '',
+        username: "Random key"
       },
     });
   }

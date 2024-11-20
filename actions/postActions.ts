@@ -2,6 +2,7 @@
 import prisma from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { v2 as cloudinary } from 'cloudinary';
+import { getUserNameFromClerkId } from './userActions';
 
 cloudinary.config({
   cloud_name: 'dyglifgei',
@@ -10,20 +11,24 @@ cloudinary.config({
 });
 
 export const getAllPostsAction = async () => {
+  console.log('entered the action. ');
   try {
     const posts = await prisma.post.findMany({
-      orderBy: [{
-        createdAt: 'desc',
-      }],
+      orderBy: [
+        {
+          createdAt: 'desc',
+        },
+      ],
       include: {
         _count: {
           select: {
             comments: true,
+            likes: true,
           },
         },
       },
     });
-    console.log(posts)
+    console.log(posts);
     return posts;
   } catch (err) {
     return null;
@@ -35,17 +40,58 @@ export const revalidatePosts = () => {
   return;
 };
 
-export const likePostAction = async (postId: number, inc: boolean) => {
+export const likePostAction = async (postId: number, userId: string) => {
   try {
-    const updatePost = await prisma.post.update({
+    const likeExists = await prisma.likes.findMany({
       where: {
-        id: postId,
-      },
-      data: {
-        likes: { increment: inc ? 1 : -1 },
+        postId: postId,
+        userId: userId,
       },
     });
-    revalidatePath('/feed');
+
+    if (likeExists.length > 0) return null;
+
+    console.log('creating like');
+    await prisma.likes.create({
+      data: {
+        postId,
+        userId,
+      },
+    });
+
+
+    return { ok: true };
+  } catch (err) {
+    return null;
+  }
+};
+
+export const isLikedAction = async (postId: number, userId: string) => {
+  try {
+    const likeExists = await prisma.likes.findMany({
+      where: {
+        postId: postId,
+        userId: userId,
+      },
+    });
+    console.log('likeExists', likeExists);
+    if (likeExists.length > 0) return { ok: true };
+    return { ok: false };
+  } catch (err) {
+    return null;
+  }
+};
+
+export const removeLikeAction = async (postId: number, userId: string) => {
+  try {
+    await prisma.likes.deleteMany({
+      where: {
+        postId,
+        userId,
+      },
+    });
+
+    return { ok: true };
   } catch (err) {
     return null;
   }
@@ -57,6 +103,7 @@ export const addCommentAction = async (
   comment: string
 ) => {
   try {
+    console.log(userId, postId, comment);
     await prisma.comment.create({
       data: {
         userId: userId,
@@ -64,6 +111,8 @@ export const addCommentAction = async (
         postId: postId,
       },
     });
+
+    revalidatePath(`/${postId}`);
   } catch (err) {
     return null;
   }
@@ -73,18 +122,23 @@ export const addPostAction = async (
   userId: string,
   data: { image?: any; postContent: string }
 ) => {
-  console.log(data);
+  console.log(data, 'adding');
+
+  const username = await getUserNameFromClerkId(userId);
 
   try {
     if (!JSON.parse(data.image)) {
+      console.log('i came heree');
       await prisma.post.create({
         data: {
           postContent: data.postContent,
           picture: '',
-          userId: '2',
+          userId: userId,
+          username,
         },
       });
       revalidatePath('/feed');
+      console.log('successfully added');
       return { ok: true, status: 200 };
     }
 
@@ -100,7 +154,8 @@ export const addPostAction = async (
               data: {
                 postContent: data.postContent,
                 picture: res ? res.url : '',
-                userId: '2',
+                userId: userId,
+                username,
               },
             });
             revalidatePath('/feed');
@@ -118,24 +173,29 @@ export const addPostAction = async (
 };
 
 export const getPostByIdAction = async (postId: number) => {
-  try{
+  try {
     const postById = prisma.post.findUnique({
       where: {
         id: postId,
-      }, 
+      },
       include: {
         comments: {
           select: {
             commentContent: true,
             userId: true,
-          }
-        }
-      }
-    })
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+          },
+        },
+      },
+    });
 
     return postById;
-  } catch(err) {
+  } catch (err) {
     console.log(err);
     return null;
   }
-}
+};

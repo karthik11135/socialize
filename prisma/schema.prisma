@@ -17,6 +17,7 @@ model User {
   id Int @id @default(autoincrement())
   userId String @unique
   posts Post[]
+  likes Likes[]
   comments Comment[]
   friends1 Friends[] @relation("Friends1")
   friends2 Friends[] @relation("Friends2")
@@ -26,13 +27,12 @@ model Post {
   id Int @id @default(autoincrement())
   postContent String
   userId String
-  likes Int @default(0)
+  username String
+  likes Likes[]
   picture String?
   createdAt DateTime @default(now())
 
   comments Comment[]
-
-
   user User @relation(fields: [userId], references: [userId])
 }
 
@@ -44,6 +44,16 @@ model Comment {
 
   post Post @relation(fields: [postId], references: [id])
   user User @relation(fields: [userId], references: [userId])
+}
+
+model Likes {
+  postId Int
+  userId String
+
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [userId])
+
+  @@id([postId, userId])
 }
 
 model Friends {

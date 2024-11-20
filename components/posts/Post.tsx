@@ -1,14 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FaHeart } from 'react-icons/fa6';
 import { FaCommentAlt } from 'react-icons/fa';
 import { HiMiniArrowUturnLeft } from 'react-icons/hi2';
 import Image from 'next/image';
-import { likePostAction } from '@/actions/postActions';
-import { redirect } from 'next/navigation';
+import {
+  isLikedAction,
+  likePostAction,
+  removeLikeAction,
+} from '@/actions/postActions';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@clerk/nextjs';
 
 interface postProps {
   postId: number;
@@ -27,18 +31,45 @@ const Post = ({
   comments,
   postId,
 }: postProps) => {
-  const [inc, setInc] = useState(true);
-  const router = useRouter()
+  const [countOfLikes, setCountOfLikes] = useState(likes);
+  const [liked, setLiked] = useState(false);
+  const { userId } = useAuth();
+  const router = useRouter();
+
+  if (!userId) return null;
+
+  useEffect(() => {
+    (async () => {
+      const res = await isLikedAction(postId, userId);
+      console.log(res);
+      if (res?.ok) {
+        setLiked(true);
+      } else setLiked(false);
+    })();
+  }, [likes]);
 
   const likeHandler = async () => {
-    setInc((prev) => !prev);
-    await likePostAction(postId, inc);
+    if (liked) {
+      const res = await removeLikeAction(postId, userId);
+      if (res) {
+        setLiked(false);
+        setCountOfLikes((prev) => prev - 1);
+      }
+      return;
+    }
+    console.log('going to like');
+    const res = await likePostAction(postId, userId);
+    console.log('like response', res);
+    if (res) {
+      setLiked(true);
+      setCountOfLikes((prev) => prev + 1);
+    }
   };
 
   const openPostHandler = () => {
-    console.log('reached')
-    router.push(`/${postId}`)
-  }
+    console.log('reached');
+    router.push(`/${postId}`);
+  };
 
   return (
     <div
@@ -46,7 +77,10 @@ const Post = ({
         picture && picture !== '' && 'row-span-2'
       }  border-neutral-700 rounded h-fit  border`}
     >
-      <Card onClick={openPostHandler} className="cursor-pointer px-3 bg-black text-slate-100  border-none rounded">
+      <Card
+        onClick={openPostHandler}
+        className="cursor-pointer px-3 bg-black text-slate-100  border-none rounded"
+      >
         <div className=" grid grid-cols-12  items-center  mx-auto py-2">
           <div className="col-span-1">
             <Avatar className="bg-slate-50">
@@ -77,10 +111,10 @@ const Post = ({
         <div className="flex gap-2  col-start-2 col-span-4 items-center">
           <FaHeart
             onClick={likeHandler}
-            color={inc ? "white" : "red"}
+            color={liked ? 'red' : 'white'}
             className="cursor-pointer"
           />
-          <p>{likes}</p>
+          <p>{countOfLikes}</p>
         </div>
         <div className="flex gap-2 col-span-4 items-center">
           <FaCommentAlt color="white" className="cursor-pointer" />
