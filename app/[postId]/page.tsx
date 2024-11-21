@@ -20,6 +20,7 @@ const page = async ({ params: postId }: postIdProps) => {
     <div className="w-4/6 mx-auto mt-5">
       <BackBtn />
       <Post
+        profilePic={post.user.profilePic}
         postId={post.id}
         username={post.username}
         likes={post._count.likes}

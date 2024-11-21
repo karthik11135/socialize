@@ -21,6 +21,7 @@ interface postProps {
   picture?: string | null;
   likes: number;
   comments: number;
+  profilePic: string;
 }
 
 const Post = ({
@@ -28,6 +29,7 @@ const Post = ({
   content,
   picture,
   likes,
+  profilePic,
   comments,
   postId,
 }: postProps) => {
@@ -84,7 +86,7 @@ const Post = ({
         <div className=" grid grid-cols-12  items-center  mx-auto py-2">
           <div className="col-span-1">
             <Avatar className="bg-slate-50">
-              <AvatarImage width={10} height={10} src={'/goole.png'} />
+              <AvatarImage width={10} height={10} src={profilePic} />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </div>

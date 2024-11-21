@@ -14,6 +14,7 @@ export const fetchAllUsersAction = async () => {
 
 export const storeUserIdAction = async (userId: string) => {
   try {
+    const profilePic = (await clerkClientSDK.users.getUser(userId)).imageUrl;
     const isPresent = await prisma.user.findUnique({
       where: {
         userId: userId,
@@ -25,6 +26,7 @@ export const storeUserIdAction = async (userId: string) => {
     await prisma.user.create({
       data: {
         userId: userId,
+        profilePic: profilePic,
       },
     });
   } catch (err) {
@@ -32,10 +34,10 @@ export const storeUserIdAction = async (userId: string) => {
   }
 };
 
-export const getUserNameFromClerkId = async(userId: string) => {
+export const getUserNameFromClerkId = async (userId: string) => {
   const userNamefromId = await clerkClientSDK.users.getUser(userId);
-  if(userNamefromId.username) {
-    return userNamefromId.username
+  if (userNamefromId.username) {
+    return userNamefromId.username;
   }
-  return ""
-}
+  return '';
+};

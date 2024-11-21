@@ -16,6 +16,7 @@ datasource db {
 model User {
   id Int @id @default(autoincrement())
   userId String @unique
+  profilePic String
   posts Post[]
   likes Likes[]
   comments Comment[]

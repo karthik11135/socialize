@@ -23,13 +23,13 @@ const CommentInput = ({ postId }: { postId: number }) => {
   };
 
   return (
-    <form onSubmit={commentSubmitHandler} className="flex gap-2">
+    <form onSubmit={commentSubmitHandler} className="flex  gap-2">
       <Input
         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
           setCommentInput(e.target.value)
         }
         value={commentInput}
-        className="text-slate-50 mb-2 placeholder:text-zinc-700"
+        className="text-slate-50 border border-neutral-700 mb-2 placeholder:text-zinc-700"
         placeholder="Send a comment"
       />
       <Button

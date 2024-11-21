@@ -9,6 +9,9 @@ interface feedProps {
   userId: string;
   username: string;
   picture: string | null;
+  user: {
+    profilePic: string;
+  };
   _count: {
     comments: number;
     likes: number;
@@ -21,6 +24,7 @@ const Feed = async ({ posts }: { posts: feedProps[] | null }) => {
       {posts?.map((post) => {
         return (
           <Post
+            profilePic={post.user.profilePic}
             postId={post.id}
             username={post.username}
             likes={post._count.likes}

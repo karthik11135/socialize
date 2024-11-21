@@ -20,6 +20,11 @@ export const getAllPostsAction = async () => {
         },
       ],
       include: {
+        user: {
+          select: {
+            profilePic: true,
+          }
+        },
         _count: {
           select: {
             comments: true,
@@ -28,6 +33,7 @@ export const getAllPostsAction = async () => {
         },
       },
     });
+
     console.log(posts);
     return posts;
   } catch (err) {
@@ -179,6 +185,11 @@ export const getPostByIdAction = async (postId: number) => {
         id: postId,
       },
       include: {
+        user: {
+          select: {
+            profilePic: true,
+          }
+        },
         comments: {
           select: {
             commentContent: true,
