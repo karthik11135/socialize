@@ -1,7 +1,8 @@
 'use client';
 import * as React from 'react';
-import axios from 'axios';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
 import {
   Card,
   CardContent,
@@ -15,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import z from 'zod';
 import { useRouter } from 'next/navigation';
-import { addPostAction, revalidatePosts } from '@/actions/postActions';
+import { addPostAction } from '@/actions/postActions';
 import { useAuth } from '@clerk/nextjs';
 
 const formSchema = z.object({
@@ -26,6 +27,7 @@ const formSchema = z.object({
 type formType = z.infer<typeof formSchema>;
 
 export function NewPost() {
+  const { toast } = useToast();
   const {
     handleSubmit,
     register,
@@ -35,6 +37,7 @@ export function NewPost() {
   });
   const [loading, setLoading] = React.useState(false);
   const router = useRouter();
+  const [imageFile, setImageFile] = React.useState('');
   const { userId } = useAuth();
 
   const submitHandler: SubmitHandler<formType> = async (data) => {
@@ -72,27 +75,60 @@ export function NewPost() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(submitHandler)}>
-          <div className="grid w-full items-center gap-4">
-            <div className="flex flex-col space-y-1.5">
-              <Label htmlFor="content">Content</Label>
-              <Input
-                {...register('postContent')}
-                placeholder="Say something..."
-              />
-              {errors.postContent && <p>{errors.postContent.message}</p>}
-            </div>
+          <div className="grid w-full mb-4 items-center gap-4">
             <div>
-              <Label htmlFor="content">Upload an image</Label>
+              {imageFile !== '' && (
+                <Image
+                  src={imageFile}
+                  id={'imageInput'}
+                  className='rounded-md mb-2'
+                  alt="nn"
+                  width={700}
+                  height={700}
+                />
+              )}
+              <Label htmlFor="content">Upload an image - max 5mb</Label>
               <Input
                 {...register('image')}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  e.preventDefault();
+                  if (e.target.files !== null)
+                    setImageFile(URL.createObjectURL(e.target.files[0]));
+                }}
                 type="file"
-                className="w-fit"
+                className="w-1/6 bg-blue-300 px-0 py-0 h-fit border border-neutral-700"
                 placeholder="Say something..."
               />
               {errors.image && <p>errornous input</p>}
             </div>
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="content">
+                Content <span className="text-red-400">*</span>
+              </Label>
+              <textarea
+                rows={4}
+                className="border bg-black rounded-md px-2 py-1 focus:outline-none font-light border-neutral-700"
+                {...register('postContent')}
+                placeholder="Say something..."
+              />
+              {errors.postContent && (
+                <p className="text-xs text-red-600 px-0.5">
+                  {errors.postContent.message}
+                </p>
+              )}
+            </div>
           </div>
-          <Button disabled={loading} type="submit" className="w-full">
+          <Button
+            onClick={() => {
+              toast({
+                description:
+                  'Image containing posts take around 1-2 min to load',
+              });
+            }}
+            disabled={loading}
+            type="submit"
+            className="w-full"
+          >
             {loading ? 'Loading' : 'Post'}
           </Button>
         </form>

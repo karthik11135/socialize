@@ -19,15 +19,7 @@ const page = async ({ params: postId }: postIdProps) => {
   return (
     <div className="w-4/6 mx-auto mt-5">
       <BackBtn />
-      <Post
-        profilePic={post.user.profilePic}
-        postId={post.id}
-        username={post.username}
-        likes={post._count.likes}
-        content={post.postContent}
-        picture={post.picture}
-        comments={post.comments.length}
-      />
+      <Post postInfo={post} />
       <CommentBox comments={post.comments.reverse()} postId={post.id} />
     </div>
   );

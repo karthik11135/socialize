@@ -15,6 +15,7 @@ interface feedProps {
   _count: {
     comments: number;
     likes: number;
+    reposts: number;
   };
 }
 
@@ -24,13 +25,14 @@ const Feed = async ({ posts }: { posts: feedProps[] | null }) => {
       {posts?.map((post) => {
         return (
           <Post
-            profilePic={post.user.profilePic}
-            postId={post.id}
-            username={post.username}
-            likes={post._count.likes}
-            content={post.postContent}
-            picture={post.picture}
-            comments={post._count.comments}
+            postInfo={post}
+            // profilePic={post.user.profilePic}
+            // postId={post.id}
+            // username={post.username}
+            // likes={post._count.likes}
+            // content={post.postContent}
+            // picture={post.picture}
+            // comments={post._count.comments}
           />
         );
       })}

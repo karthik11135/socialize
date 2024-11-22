@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['res.cloudinary.com'],
+    domains: ['res.cloudinary.com', 'img.clerk.com'],
   },
   experimental: {
     serverActions: {
-      bodySizeLimit: '7mb',
+      bodySizeLimit: '5mb',
     },
   },
 };

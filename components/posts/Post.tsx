@@ -6,35 +6,44 @@ import { FaHeart } from 'react-icons/fa6';
 import { FaCommentAlt } from 'react-icons/fa';
 import { HiMiniArrowUturnLeft } from 'react-icons/hi2';
 import Image from 'next/image';
+import { isRepostedAction } from '@/actions/respostActions';
+import { useToast } from '@/hooks/use-toast';
 import {
   isLikedAction,
   likePostAction,
   removeLikeAction,
-} from '@/actions/postActions';
+} from '@/actions/likeActions';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
+import { removeRepostAction, repostAction } from '@/actions/respostActions';
 
-interface postProps {
-  postId: number;
+interface postInfoProps {
+  id: number;
+  postContent: string;
+  userId: string;
   username: string;
-  content: string;
-  picture?: string | null;
-  likes: number;
-  comments: number;
-  profilePic: string;
+  picture: string | null;
+  user: {
+    profilePic: string;
+  };
+  _count: {
+    comments: number;
+    likes: number;
+    reposts: number;
+  };
 }
 
-const Post = ({
-  username,
-  content,
-  picture,
-  likes,
-  profilePic,
-  comments,
-  postId,
-}: postProps) => {
-  const [countOfLikes, setCountOfLikes] = useState(likes);
+const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
+  const {toast} = useToast()
+  const [countOfLikes, setCountOfLikes] = useState<number>(
+    postInfo._count.likes
+  );
+  const [countOfReposts, setCountOfReposts] = useState<number>(
+    postInfo._count.reposts
+  );
   const [liked, setLiked] = useState(false);
+  const [reposted, setReposted] = useState(false);
+
   const { userId } = useAuth();
   const router = useRouter();
 
@@ -42,17 +51,25 @@ const Post = ({
 
   useEffect(() => {
     (async () => {
-      const res = await isLikedAction(postId, userId);
-      console.log(res);
-      if (res?.ok) {
+      const resLike = await isLikedAction(postInfo.id, userId);
+      if (resLike?.ok) {
         setLiked(true);
       } else setLiked(false);
     })();
-  }, [likes]);
+  }, [countOfLikes]);
+
+  useEffect(() => {
+    (async () => {
+      const resRepost = await isRepostedAction(postInfo.id, userId);
+      if (resRepost?.ok) {
+        setReposted(true);
+      } else setReposted(false);
+    })();
+  }, [countOfReposts]);
 
   const likeHandler = async () => {
     if (liked) {
-      const res = await removeLikeAction(postId, userId);
+      const res = await removeLikeAction(postInfo.id, userId);
       if (res) {
         setLiked(false);
         setCountOfLikes((prev) => prev - 1);
@@ -60,7 +77,7 @@ const Post = ({
       return;
     }
     console.log('going to like');
-    const res = await likePostAction(postId, userId);
+    const res = await likePostAction(postInfo.id, userId);
     console.log('like response', res);
     if (res) {
       setLiked(true);
@@ -68,16 +85,37 @@ const Post = ({
     }
   };
 
+  const repostHandler = async () => {
+    if (reposted) {
+      const res = await removeRepostAction(postInfo.id, userId);
+      if (res) {
+        setReposted(true);
+        setCountOfReposts((prev) => prev - 1);
+      }
+      return;
+    }
+    const res = await repostAction(postInfo.id, userId);
+    if (res?.ok) {
+      setReposted(true);
+      setCountOfReposts((prev) => prev + 1);
+    } else {
+      toast({
+        description: "You cannot repost your own post / Network issue"
+      })
+    }
+  };
+
   const openPostHandler = () => {
     console.log('reached');
-    router.push(`/${postId}`);
+    router.push(`/${postInfo.id}`);
   };
 
   return (
     <div
       className={`${
-        picture && picture !== '' && 'row-span-2'
-      }  border-neutral-700 rounded h-fit  border`}
+        postInfo.picture && postInfo.picture !== '' && 'row-span-2'
+      }  border-neutral-800
+       rounded h-fit  border`}
     >
       <Card
         onClick={openPostHandler}
@@ -86,26 +124,30 @@ const Post = ({
         <div className=" grid grid-cols-12  items-center  mx-auto py-2">
           <div className="col-span-1">
             <Avatar className="bg-slate-50">
-              <AvatarImage width={10} height={10} src={profilePic} />
+              <AvatarImage
+                width={10}
+                height={10}
+                src={postInfo.user.profilePic}
+              />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </div>
           <CardHeader className="ps-4 col-span-10">
-            <CardTitle>{username}</CardTitle>
+            <CardTitle>{postInfo.username}</CardTitle>
           </CardHeader>
         </div>
         <div className="">
-          {picture && (
+          {postInfo.picture && (
             <Image
-              src={picture}
+              src={postInfo.picture}
               alt="image"
-              className=" mx-auto w-4/6 mb-3"
-              width={100}
-              height={100}
+              className="rounded-md mx-auto w-full mb-3"
+              width={800}
+              height={800}
             />
           )}
           <CardContent className=" max-h-44 me-0 overflow-scroll">
-            <p>{content}</p>
+            <p>{postInfo.postContent}</p>
           </CardContent>
         </div>
       </Card>
@@ -120,11 +162,16 @@ const Post = ({
         </div>
         <div className="flex gap-2 col-span-4 items-center">
           <FaCommentAlt color="white" className="cursor-pointer" />
-          <p>{comments}</p>
+          <p>{postInfo._count.comments}</p>
         </div>
         <div className="flex gap-2 col-span-3 items-center">
-          <HiMiniArrowUturnLeft color="white" className="cursor-pointer" />
-          <p>12</p>
+          <HiMiniArrowUturnLeft
+            onClick={repostHandler}
+            strokeWidth={2}
+            color={reposted ? 'green' : 'white'}
+            className="cursor-pointer"
+          />
+          <p>{countOfReposts}</p>
         </div>
       </div>
     </div>

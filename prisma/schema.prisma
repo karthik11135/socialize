@@ -19,6 +19,7 @@ model User {
   profilePic String
   posts Post[]
   likes Likes[]
+  reposts RePosts[]
   comments Comment[]
   friends1 Friends[] @relation("Friends1")
   friends2 Friends[] @relation("Friends2")
@@ -30,6 +31,7 @@ model Post {
   userId String
   username String
   likes Likes[]
+  reposts RePosts[]
   picture String?
   createdAt DateTime @default(now())
 
@@ -50,6 +52,17 @@ model Comment {
 model Likes {
   postId Int
   userId String
+
+  post Post @relation(fields: [postId], references: [id])
+  user User @relation(fields: [userId], references: [userId])
+
+  @@id([postId, userId])
+}
+
+model RePosts {
+  postId Int
+  userId String
+  repostId Int
 
   post Post @relation(fields: [postId], references: [id])
   user User @relation(fields: [userId], references: [userId])

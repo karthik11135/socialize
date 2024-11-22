@@ -11,7 +11,6 @@ cloudinary.config({
 });
 
 export const getAllPostsAction = async () => {
-  console.log('entered the action. ');
   try {
     const posts = await prisma.post.findMany({
       orderBy: [
@@ -23,18 +22,18 @@ export const getAllPostsAction = async () => {
         user: {
           select: {
             profilePic: true,
-          }
+          },
         },
         _count: {
           select: {
             comments: true,
             likes: true,
+            reposts: true,
           },
         },
       },
     });
 
-    console.log(posts);
     return posts;
   } catch (err) {
     return null;
@@ -44,63 +43,6 @@ export const getAllPostsAction = async () => {
 export const revalidatePosts = () => {
   revalidatePath('/feed');
   return;
-};
-
-export const likePostAction = async (postId: number, userId: string) => {
-  try {
-    const likeExists = await prisma.likes.findMany({
-      where: {
-        postId: postId,
-        userId: userId,
-      },
-    });
-
-    if (likeExists.length > 0) return null;
-
-    console.log('creating like');
-    await prisma.likes.create({
-      data: {
-        postId,
-        userId,
-      },
-    });
-
-
-    return { ok: true };
-  } catch (err) {
-    return null;
-  }
-};
-
-export const isLikedAction = async (postId: number, userId: string) => {
-  try {
-    const likeExists = await prisma.likes.findMany({
-      where: {
-        postId: postId,
-        userId: userId,
-      },
-    });
-    console.log('likeExists', likeExists);
-    if (likeExists.length > 0) return { ok: true };
-    return { ok: false };
-  } catch (err) {
-    return null;
-  }
-};
-
-export const removeLikeAction = async (postId: number, userId: string) => {
-  try {
-    await prisma.likes.deleteMany({
-      where: {
-        postId,
-        userId,
-      },
-    });
-
-    return { ok: true };
-  } catch (err) {
-    return null;
-  }
 };
 
 export const addCommentAction = async (
@@ -188,7 +130,7 @@ export const getPostByIdAction = async (postId: number) => {
         user: {
           select: {
             profilePic: true,
-          }
+          },
         },
         comments: {
           select: {
@@ -199,6 +141,8 @@ export const getPostByIdAction = async (postId: number) => {
         _count: {
           select: {
             likes: true,
+            reposts: true,
+            comments: true,
           },
         },
       },
@@ -209,4 +153,93 @@ export const getPostByIdAction = async (postId: number) => {
     console.log(err);
     return null;
   }
+};
+
+export const getAllPostsForUser = async (userId: string) => {
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        userId: userId,
+      },
+      include: {
+        user: {
+          select: {
+            profilePic: true,
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
+            likes: true,
+            reposts: true,
+          },
+        },
+      },
+    });
+
+    return posts;
+  } catch (err) {
+    console.log(err);
+    return null;
+  }
+};
+
+export const deletePostByIdAction = async (postId: number) => {
+  try {
+    const res = await prisma.post.delete({
+      where: {
+        id: postId,
+      },
+    });
+    if (res) {
+      console.log('deleted')
+      revalidatePath(`/profile`);
+      return true;
+    }
+    return false;
+  } catch (err) {
+    return null;
+  }
+};
+
+export const getLikedPostsAction = async (userId: string) => {
+  const postIdObjs = await prisma.likes.findMany({
+    where: {
+      userId: userId,
+    },
+    select: {
+      postId: true,
+    },
+  });
+
+  const postIds: number[] = [];
+  if (postIdObjs) {
+    postIdObjs.forEach((obj) => {
+      postIds.push(obj.postId);
+    });
+  }
+
+  const posts = await prisma.post.findMany({
+    where: {
+      id: {
+        in: postIds,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          profilePic: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          likes: true,
+          reposts: true,
+        },
+      },
+    },
+  });
+
+  return posts;
 };
