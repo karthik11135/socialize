@@ -18,6 +18,7 @@ import z from 'zod';
 import { useRouter } from 'next/navigation';
 import { addPostAction } from '@/actions/postActions';
 import { useAuth } from '@clerk/nextjs';
+import { IoReloadOutline } from 'react-icons/io5';
 
 const formSchema = z.object({
   postContent: z.string().min(5),
@@ -36,6 +37,7 @@ export function NewPost() {
     resolver: zodResolver(formSchema),
   });
   const [loading, setLoading] = React.useState(false);
+  const [errorImage, setErrorImage] = React.useState(false);
   const router = useRouter();
   const [imageFile, setImageFile] = React.useState('');
   const { userId } = useAuth();
@@ -55,8 +57,13 @@ export function NewPost() {
           image: JSON.stringify(bytes),
         });
 
-        if (res.status) {
+        console.log(res);
+
+        if (res?.status) {
           router.push('/feed');
+        }
+        if (res.ok === false && res.status === 400) {
+          setErrorImage(true);
         }
       }
 
@@ -81,13 +88,13 @@ export function NewPost() {
                 <Image
                   src={imageFile}
                   id={'imageInput'}
-                  className='rounded-md mb-2'
+                  className="rounded-md mb-2"
                   alt="nn"
                   width={700}
                   height={700}
                 />
               )}
-              <Label htmlFor="content">Upload an image - max 5mb</Label>
+              <Label htmlFor="content">Upload an image - max 3mb</Label>
               <Input
                 {...register('image')}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,6 +123,11 @@ export function NewPost() {
                   {errors.postContent.message}
                 </p>
               )}
+              {errorImage && (
+                <p className="text-xs text-red-600 px-0.5">
+                  Make sure image is less than 5mb
+                </p>
+              )}
             </div>
           </div>
           <Button
@@ -129,7 +141,7 @@ export function NewPost() {
             type="submit"
             className="w-full"
           >
-            {loading ? 'Loading' : 'Post'}
+            {loading ? <IoReloadOutline className="animate-spin" /> : 'Post'}
           </Button>
         </form>
       </CardContent>

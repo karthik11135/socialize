@@ -1,5 +1,6 @@
-import { getAllPostsAction } from '@/actions/postActions';
-import Post from '../posts/Post';
+// 'use client';
+import React from 'react';
+import { AllPosts } from './AllPosts';
 
 export const revalidate = 300;
 
@@ -19,23 +20,11 @@ interface feedProps {
   };
 }
 
-const Feed = async ({ posts }: { posts: feedProps[] | null }) => {
+const Feed = ({ posts }: { posts: feedProps[] | null }) => {
+
   return (
-    <div className="grid grid-cols-3 m-10 gap-5">
-      {posts?.map((post) => {
-        return (
-          <Post
-            postInfo={post}
-            // profilePic={post.user.profilePic}
-            // postId={post.id}
-            // username={post.username}
-            // likes={post._count.likes}
-            // content={post.postContent}
-            // picture={post.picture}
-            // comments={post._count.comments}
-          />
-        );
-      })}
+    <div>
+      <AllPosts posts={posts} />
     </div>
   );
 };

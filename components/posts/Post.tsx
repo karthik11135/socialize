@@ -16,6 +16,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { removeRepostAction, repostAction } from '@/actions/respostActions';
+import { IoReloadOutline } from 'react-icons/io5';
 
 interface postInfoProps {
   id: number;
@@ -34,7 +35,7 @@ interface postInfoProps {
 }
 
 const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
-  const {toast} = useToast()
+  const { toast } = useToast();
   const [countOfLikes, setCountOfLikes] = useState<number>(
     postInfo._count.likes
   );
@@ -43,6 +44,8 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
   );
   const [liked, setLiked] = useState(false);
   const [reposted, setReposted] = useState(false);
+  const [repostLoader, setRepostLoader] = useState(false);
+  const [likeLoader, setLikeLoader] = useState(false);
 
   const { userId } = useAuth();
   const router = useRouter();
@@ -56,7 +59,7 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
         setLiked(true);
       } else setLiked(false);
     })();
-  }, [countOfLikes]);
+  }, [countOfLikes, userId]);
 
   useEffect(() => {
     (async () => {
@@ -65,48 +68,60 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
         setReposted(true);
       } else setReposted(false);
     })();
-  }, [countOfReposts]);
+  }, [countOfReposts, userId]);
 
   const likeHandler = async () => {
+    setLikeLoader(true);
     if (liked) {
       const res = await removeLikeAction(postInfo.id, userId);
       if (res) {
         setLiked(false);
         setCountOfLikes((prev) => prev - 1);
+        setLikeLoader(false);
       }
       return;
     }
-    console.log('going to like');
+
     const res = await likePostAction(postInfo.id, userId);
-    console.log('like response', res);
+
     if (res) {
+      setLikeLoader(false);
       setLiked(true);
       setCountOfLikes((prev) => prev + 1);
     }
   };
 
   const repostHandler = async () => {
+    setRepostLoader(true);
     if (reposted) {
       const res = await removeRepostAction(postInfo.id, userId);
       if (res) {
         setReposted(true);
         setCountOfReposts((prev) => prev - 1);
+        setRepostLoader(false);
+        toast({
+          description: 'Your repost removed',
+        });
       }
       return;
     }
     const res = await repostAction(postInfo.id, userId);
     if (res?.ok) {
       setReposted(true);
+      setRepostLoader(false);
       setCountOfReposts((prev) => prev + 1);
-    } else {
       toast({
-        description: "You cannot repost your own post / Network issue"
-      })
+        description: 'Successfully reposted',
+      });
+    } else {
+      setRepostLoader(false);
+      toast({
+        description: 'You cannot repost your own post / Network issue',
+      });
     }
   };
 
   const openPostHandler = () => {
-    console.log('reached');
     router.push(`/${postInfo.id}`);
   };
 
@@ -115,14 +130,14 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
       className={`${
         postInfo.picture && postInfo.picture !== '' && 'row-span-2'
       }  border-neutral-800
-       rounded h-fit  border`}
+       rounded-md h-fit px-2  border`}
     >
-      <Card
+      <div
         onClick={openPostHandler}
-        className="cursor-pointer px-3 bg-black text-slate-100  border-none rounded"
+        className="cursor-pointer bg-black text-slate-100  border-none rounded"
       >
-        <div className=" grid grid-cols-12  items-center  mx-auto py-2">
-          <div className="col-span-1">
+        <div className=" grid grid-cols-12 items-center  mx-auto">
+          <div className="col-span-1 ">
             <Avatar className="bg-slate-50">
               <AvatarImage
                 width={10}
@@ -132,32 +147,38 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
           </div>
-          <CardHeader className="ps-4 col-span-10">
+          <CardHeader className="ps-3 col-span-11">
             <CardTitle>{postInfo.username}</CardTitle>
           </CardHeader>
         </div>
-        <div className="">
-          {postInfo.picture && (
-            <Image
-              src={postInfo.picture}
-              alt="image"
-              className="rounded-md mx-auto w-full mb-3"
-              width={800}
-              height={800}
+        <div className="grid grid-cols-12">
+          <div className="col-start-2 col-span-11">
+            {postInfo.picture && (
+              <Image
+                src={postInfo.picture}
+                alt="image"
+                className="rounded px-3 mx-auto w-full mb-2"
+                width={600}
+                height={600}
+              />
+            )}
+            <div className=" pb-3 ps-3 max-h-44 overflow-scroll">
+              <p className="">{postInfo.postContent}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="grid grid-cols-12 mb-2 w-full text-slate-50">
+        <div className="flex gap-2 col-start-2 ps-3 col-span-4 items-center">
+          {likeLoader ? (
+            <IoReloadOutline className="animate-spin" />
+          ) : (
+            <FaHeart
+              onClick={likeHandler}
+              color={liked ? 'red' : 'white'}
+              className="cursor-pointer"
             />
           )}
-          <CardContent className=" max-h-44 me-0 overflow-scroll">
-            <p>{postInfo.postContent}</p>
-          </CardContent>
-        </div>
-      </Card>
-      <div className="grid grid-cols-12 px-3 mb-2 w-full text-slate-50">
-        <div className="flex gap-2  col-start-2 col-span-4 items-center">
-          <FaHeart
-            onClick={likeHandler}
-            color={liked ? 'red' : 'white'}
-            className="cursor-pointer"
-          />
           <p>{countOfLikes}</p>
         </div>
         <div className="flex gap-2 col-span-4 items-center">
@@ -165,12 +186,16 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
           <p>{postInfo._count.comments}</p>
         </div>
         <div className="flex gap-2 col-span-3 items-center">
-          <HiMiniArrowUturnLeft
-            onClick={repostHandler}
-            strokeWidth={2}
-            color={reposted ? 'green' : 'white'}
-            className="cursor-pointer"
-          />
+          {repostLoader ? (
+            <IoReloadOutline className="animate-spin" />
+          ) : (
+            <HiMiniArrowUturnLeft
+              onClick={repostHandler}
+              strokeWidth={2}
+              color={reposted ? 'green' : 'white'}
+              className="cursor-pointer"
+            />
+          )}
           <p>{countOfReposts}</p>
         </div>
       </div>

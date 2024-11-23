@@ -6,89 +6,87 @@ import { revalidatePath } from 'next/cache';
 
 export const repostAction = async (postId: number, userId: string) => {
   try {
-    const exists = await prisma.post.findFirst({
-      where: {
-        id: postId,
-        userId,
-      },
-    });
-
-    console.log('checking if it is reposted', exists);
-
-    if (exists) return null;
-
-    const postDetails = await prisma.post.findUnique({
-      where: {
-        id: postId,
-      },
-    });
-
-    console.log('found original post', postDetails);
-
-    const username = await getUserNameFromClerkId(userId);
-
-    if (postDetails) {
-      const res = await prisma.post.create({
-        data: {
-          userId: userId,
-          username: username,
-          postContent: postDetails?.postContent,
-          picture: postDetails?.picture,
+    return prisma.$transaction(async (tx) => {
+      const exists = await tx.post.findFirst({
+        where: {
+          id: postId,
+          userId,
         },
       });
 
-      console.log('created new detials', 'created new details');
+      if (exists) return null;
 
-      const repostRes = await prisma.rePosts.create({
-        data: {
-          postId: postId,
-          userId: userId,
-          repostId: res.id,
+      const postDetails = await tx.post.findUnique({
+        where: {
+          id: postId,
         },
       });
 
-      console.log('updated in reposts table', repostRes);
+      const username = await getUserNameFromClerkId(userId);
 
-      revalidatePath('/feed')
-      if (res && repostRes) return { ok: true };
-    }
-    return { ok: false };
+      if (postDetails) {
+        const res = await tx.post.create({
+          data: {
+            userId: userId,
+            username: username,
+            postContent: postDetails?.postContent,
+            picture: postDetails?.picture,
+          },
+        });
+
+        console.log('created new detials', 'created new details');
+
+        const repostRes = await tx.rePosts.create({
+          data: {
+            postId: postId,
+            userId: userId,
+            repostId: res.id,
+          },
+        });
+
+        revalidatePath('/feed');
+        if (res && repostRes) return { ok: true };
+      }
+      return { ok: false };
+    });
   } catch (err) {
     return null;
   }
 };
 
 export const removeRepostAction = async (postId: number, userId: string) => {
-  const exists = await prisma.rePosts.findFirst({
-    where: {
-      postId: postId,
-      userId: userId,
-    },
+  return prisma.$transaction(async (tx) => {
+    const exists = await tx.rePosts.findFirst({
+      where: {
+        postId: postId,
+        userId: userId,
+      },
+    });
+
+    if (!exists) return null;
+
+    const repostedId = exists.repostId;
+
+    const res = await tx.rePosts.deleteMany({
+      where: {
+        postId: postId,
+        userId: userId,
+      },
+    });
+
+    const deletePost = await tx.post.deleteMany({
+      where: {
+        id: repostedId,
+      },
+    });
+
+    if (res && deletePost) {
+      revalidatePath('/feed');
+      return { ok: true };
+    }
+
+    return { ok: false };
   });
-
-  if (!exists) return null;
-
-  const repostedId = exists.repostId;
-
-  const res = await prisma.rePosts.deleteMany({
-    where: {
-      postId: postId,
-      userId: userId,
-    },
-  });
-
-  const deletePost = await prisma.post.deleteMany({
-    where: {
-      id: repostedId,
-    },
-  });
-
-  if (res && deletePost) {
-    revalidatePath('/feed')
-    return { ok: true };
-  }
-
-  return { ok: false };
 };
 
 export const isRepostedAction = async (postId: number, userId: string) => {
@@ -99,6 +97,6 @@ export const isRepostedAction = async (postId: number, userId: string) => {
     },
   });
 
-  if(res) return {ok: true};
-  return {ok: false}
+  if (res) return { ok: true };
+  return { ok: false };
 };

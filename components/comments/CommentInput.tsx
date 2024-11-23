@@ -4,6 +4,7 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { useAuth } from '@clerk/nextjs';
 import { addCommentAction } from '@/actions/postActions';
+import { IoReloadOutline } from "react-icons/io5";
 
 const CommentInput = ({ postId }: { postId: number }) => {
   const { userId } = useAuth();
@@ -17,9 +18,11 @@ const CommentInput = ({ postId }: { postId: number }) => {
     e.preventDefault();
     setLoading(true);
     if (commentInput === '') return;
-    await addCommentAction(userId, postId, commentInput);
-    setCommentInput('');
-    setLoading(false);
+    const res = await addCommentAction(userId, postId, commentInput);
+    if(res?.ok) {
+      setLoading(false)
+      setCommentInput("")
+    }
   };
 
   return (
@@ -38,7 +41,7 @@ const CommentInput = ({ postId }: { postId: number }) => {
         className="text-black"
         type="submit"
       >
-        {loading ? 'Loading' : 'Add comment'}
+        {loading ? <IoReloadOutline className='animate-spin' /> : 'Add comment'}
       </Button>
     </form>
   );

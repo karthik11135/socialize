@@ -1,24 +1,16 @@
 import React from 'react';
-import { auth } from '@clerk/nextjs/server';
 import { getAllPostsForUser, getLikedPostsAction } from '@/actions/postActions';
 import Post from '../posts/Post';
 import { currentUser } from '@clerk/nextjs/server';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FaArrowLeftLong } from 'react-icons/fa6';
-import Image from 'next/image';
 import DeletePostBtn from './DeletePostBtn';
 
-
-const ProfilePage = async () => {
-  const { userId } = await auth();
+const ProfilePage = async ({ userId }: { userId: string }) => {
   const user = await currentUser();
-
-  if (!userId) {
-    return null;
-  }
   const posts = await getAllPostsForUser(userId);
   const likedPosts = await getLikedPostsAction(userId);
+
   if (!posts) return null;
 
   return (
@@ -42,41 +34,25 @@ const ProfilePage = async () => {
           {posts?.map((post) => {
             return (
               <div className="relative">
-                <Post
-                  postInfo={post}
-                />
+                <Post postInfo={post} />
                 <DeletePostBtn postId={post.id} />
               </div>
             );
           })}
         </TabsContent>
         <TabsContent value="likedposts">
-        {likedPosts?.map((post) => {
+          {likedPosts.length === 0 && (
+            <h3 className="text-lg m-1 ">No liked posts on your profile</h3>
+          )}
+          {likedPosts?.map((post) => {
             return (
               <div className="relative">
-                <Post
-                  postInfo={post}
-                />
+                <Post postInfo={post} />
               </div>
             );
           })}
         </TabsContent>
       </Tabs>
-      {/* <div>
-        {posts?.map((post) => {
-          return (
-            <Post
-              profilePic={post.user.profilePic}
-              postId={post.id}
-              username={post.username}
-              likes={post._count.likes}
-              content={post.postContent}
-              picture={post.picture}
-              comments={post._count.comments}
-            />
-          );
-        })}
-      </div> */}
     </div>
   );
 };

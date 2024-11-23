@@ -3,6 +3,7 @@ import prisma from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 import { v2 as cloudinary } from 'cloudinary';
 import { getUserNameFromClerkId } from './userActions';
+import { auth } from '@clerk/nextjs/server';
 
 cloudinary.config({
   cloud_name: 'dyglifgei',
@@ -51,32 +52,31 @@ export const addCommentAction = async (
   comment: string
 ) => {
   try {
-    console.log(userId, postId, comment);
-    await prisma.comment.create({
+    const res = await prisma.comment.create({
       data: {
         userId: userId,
         commentContent: comment,
         postId: postId,
       },
     });
-
-    revalidatePath(`/${postId}`);
+    if (res) {
+      revalidatePath(`/${postId}`);
+      return { ok: true };
+    }
   } catch (err) {
     return null;
   }
+  return null;
 };
 
 export const addPostAction = async (
   userId: string,
   data: { image?: any; postContent: string }
 ) => {
-  console.log(data, 'adding');
-
   const username = await getUserNameFromClerkId(userId);
 
   try {
     if (!JSON.parse(data.image)) {
-      console.log('i came heree');
       await prisma.post.create({
         data: {
           postContent: data.postContent,
@@ -86,7 +86,6 @@ export const addPostAction = async (
         },
       });
       revalidatePath('/feed');
-      console.log('successfully added');
       return { ok: true, status: 200 };
     }
 
@@ -186,17 +185,30 @@ export const getAllPostsForUser = async (userId: string) => {
 
 export const deletePostByIdAction = async (postId: number) => {
   try {
-    const res = await prisma.post.delete({
-      where: {
-        id: postId,
-      },
+    const { userId } = await auth();
+    if (!userId) return null;
+
+    return prisma.$transaction(async (tx) => {
+      const deleteRepostedPost = await tx.rePosts.deleteMany({
+        where: {
+          repostId: postId,
+          userId: userId,
+        },
+      });
+
+      const res = await tx.post.deleteMany({
+        where: {
+          id: postId,
+        },
+      });
+
+      if (res && deleteRepostedPost) {
+        console.log('deleted');
+        revalidatePath(`/profile`);
+        return { ok: true };
+      }
+      return { ok: false };
     });
-    if (res) {
-      console.log('deleted')
-      revalidatePath(`/profile`);
-      return true;
-    }
-    return false;
   } catch (err) {
     return null;
   }
@@ -242,4 +254,32 @@ export const getLikedPostsAction = async (userId: string) => {
   });
 
   return posts;
+};
+
+export const searchPostsAction = async (str: string) => {
+  console.log('reached searching')
+  const posts = await prisma.post.findMany({
+    where: {
+      postContent: {
+        contains: str,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          profilePic: true,
+        },
+      },
+      _count: {
+        select: {
+          comments: true,
+          likes: true,
+          reposts: true,
+        },
+      },
+    },
+  });
+
+  return posts
+  console.log(posts);
 };

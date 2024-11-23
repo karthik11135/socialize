@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "RePosts" ALTER COLUMN "repostId" SET DATA TYPE TEXT;

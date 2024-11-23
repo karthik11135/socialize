@@ -9,10 +9,10 @@ const page = async () => {
   const { userId } = await auth();
 
   if (!userId) {
-    return <p className="text-center text-lg">First login</p>;
+    redirect('/')
   }
+
   const posts = await getAllPostsAction();
-  console.log(posts)
 
   if (!posts) {
     redirect('/');
@@ -20,7 +20,7 @@ const page = async () => {
 
   return (
     <div>
-      <Feed posts={posts?.reverse()} />
+      <Feed posts={posts} />
     </div>
   );
 };

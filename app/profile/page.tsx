@@ -1,12 +1,20 @@
-import React from 'react'
-import ProfilePage from '@/components/profile/ProfilePage'
+import React from 'react';
+import ProfilePage from '@/components/profile/ProfilePage';
+import { redirect } from 'next/navigation';
+import { auth } from '@clerk/nextjs/server';
 
-const page = () => {
+const page = async () => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect('/');
+  }
+
   return (
     <div>
-      <ProfilePage />
+      <ProfilePage userId={userId} />
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default page;

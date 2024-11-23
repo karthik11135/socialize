@@ -17,11 +17,6 @@ const items = [
     icon: <FaPen size={20} />,
   },
   {
-    name: 'Friends',
-    href: '/friends',
-    icon: <FaUserFriends size={25} />,
-  },
-  {
     name: 'Profile',
     href: '/profile',
     icon: <FaRegUser size={25} />,
@@ -38,7 +33,7 @@ const SidebarItems = () => {
               key={ind}
               className="grid grid-cols-4 gap-4 mb-10 text-slate-50"
             >
-              <div className="flex col-span-1 items-center"> {item.icon}</div>
+              <div className="flex items-center"> {item.icon}</div>
               <Link
                 className="scroll-m-20 text-xl font-medium tracking-tight"
                 href={item.href}

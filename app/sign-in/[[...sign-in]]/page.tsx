@@ -3,7 +3,7 @@ import { SignIn } from '@clerk/nextjs';
 
 const page = () => {
   return (
-    <div className="mx-auto mt-10 w-2/6">
+    <div className="mx-auto mt-10 w-fit">
       <SignIn />
     </div>
   );

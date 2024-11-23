@@ -1,21 +1,42 @@
-'use client';
-import { useEffect } from 'react';
-import { useAuth } from '@clerk/nextjs';
+// 'use client';
+
 import SidebarItems from './SidebarItems';
 import { storeUserIdAction } from '@/actions/userActions';
+import { auth } from '@clerk/nextjs/server';
 
-const SidebarWrapper = ({ children }: { children: React.ReactNode }) => {
-  const { userId } = useAuth();
+const SidebarWrapper = async ({ children }: { children: React.ReactNode }) => {
+  // const { userId } = useAuth();
 
-  const handleUserIdStorage = async (userId: string) => {
-    await storeUserIdAction(userId);
-  };
+  // console.log(userId)
 
-  useEffect(() => {
-    if (userId) {
-      handleUserIdStorage(userId);
+  // if(!userId) {
+  //   return null
+  // }
+
+  const { userId } = await auth();
+
+  if (userId) {
+    try {
+      await storeUserIdAction(userId);
+    } catch (err) {
+      console.log(err);
     }
-  }, [userId]);
+  }
+
+  // const handleUserIdStorage = async (userId: string) => {
+  //   if (userId !== null) await storeUserIdAction(userId);
+  // };
+
+  // useEffect(() => {
+  //   if (userId) {
+  //     console.log('sent req to db')
+  //     handleUserIdStorage(userId);
+  //   }
+
+  //   return () => {
+
+  //   }
+  // }, []);
 
   return (
     <div className="grid grid-cols-12">

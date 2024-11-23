@@ -4,7 +4,7 @@ import { SignUp } from '@clerk/nextjs';
 import React from 'react';
 
 const page = () => {
-  return <div className='mx-auto mt-10 w-2/6'>
+  return <div className='mx-auto mt-10 w-fit'>
      <SignUp />
   </div>
 };
