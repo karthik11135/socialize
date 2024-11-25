@@ -1,8 +1,7 @@
 import React from 'react';
-import { Input } from '../ui/input';
-import { Card } from '../ui/card';
+
 import EachComment from './EachComment';
-import { Button } from '../ui/button';
+
 import CommentInput from './CommentInput';
 
 interface CommentsProps {
@@ -22,9 +21,10 @@ const CommentBox = ({
       <CommentInput postId={postId} />
 
       <div>
-        {comments.map((comment) => {
+        {comments.map((comment, ind) => {
           return (
             <EachComment
+              key={ind}
               userIdComment={comment.userId}
               commentContent={comment.commentContent}
             />

@@ -6,12 +6,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DeletePostBtn from './DeletePostBtn';
 
+
 const ProfilePage = async ({ userId }: { userId: string }) => {
   const user = await currentUser();
-  const posts = await getAllPostsForUser(userId);
-  const likedPosts = await getLikedPostsAction(userId);
-
-  if (!posts) return null;
+  const posts = await getAllPostsForUser(userId as string);
+  const likedPosts = await getLikedPostsAction(userId as string);
 
   return (
     <div className="w-3/6 mt-5 mx-auto">
@@ -28,12 +27,12 @@ const ProfilePage = async ({ userId }: { userId: string }) => {
           <TabsTrigger value="likedposts">Liked Posts</TabsTrigger>
         </TabsList>
         <TabsContent value="myposts">
-          {posts.length === 0 && (
+          {posts?.length === 0 && (
             <h3 className="text-lg m-1 ">No posts on your profile</h3>
           )}
-          {posts?.map((post) => {
+          {posts?.map((post, ind) => {
             return (
-              <div className="relative">
+              <div key={ind} className="relative">
                 <Post postInfo={post} />
                 <DeletePostBtn postId={post.id} />
               </div>
@@ -44,9 +43,9 @@ const ProfilePage = async ({ userId }: { userId: string }) => {
           {likedPosts.length === 0 && (
             <h3 className="text-lg m-1 ">No liked posts on your profile</h3>
           )}
-          {likedPosts?.map((post) => {
+          {likedPosts?.map((post, ind) => {
             return (
-              <div className="relative">
+              <div key={ind} className="relative">
                 <Post postInfo={post} />
               </div>
             );

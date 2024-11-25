@@ -20,7 +20,7 @@ export default function Home() {
         Welcome to Socialize
       </h1>
       <p className="bg-clip-text text-lg text-center font-light text-transparent bg-gradient-to-br my-5 from-slate-50 to-slate-800">
-        This is a social media application that I built to improve my skills
+        This is a social media application that I built to improve my dev {"</>"} skills
       </p>
       <Link
         target="_blank"

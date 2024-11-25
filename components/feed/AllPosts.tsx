@@ -64,7 +64,7 @@ export const AllPosts = ({ posts }: { posts: feedProps[] | null }) => {
       setSearching(false);
       clearTimeout(bounce);
     };
-  }, [searchVal]);
+  }, [searchVal, posts]);
 
   return (
     <div className="mx-10 my-6">

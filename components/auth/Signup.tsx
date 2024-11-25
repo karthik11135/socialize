@@ -4,8 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import Image from 'next/image';
-import { useSignIn } from '@clerk/nextjs';
 import Oauth from './Oauth';
 import { useSignUp } from '@clerk/nextjs';
 
@@ -18,7 +16,7 @@ const formSchema = z.object({
 type formType = z.infer<typeof formSchema>;
 
 export const Signup = () => {
-  const { signUp, isLoaded, setActive } = useSignUp();
+  const { signUp, setActive } = useSignUp();
 
   const {
     handleSubmit,
@@ -29,8 +27,6 @@ export const Signup = () => {
   });
 
   const submitHandler: SubmitHandler<formType> = async (data) => {
-    console.log('hye there');
-    console.log(data);
     const result = await signUp?.create({
       emailAddress: data.email,
       password: data.password,

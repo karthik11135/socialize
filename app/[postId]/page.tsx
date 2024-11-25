@@ -12,7 +12,6 @@ interface postIdProps {
 
 const page = async ({ params: postId }: postIdProps) => {
   const post = await getPostByIdAction(Number(postId.postId));
-  console.log(post?.comments);
 
   if (!post) return null;
 

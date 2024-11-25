@@ -1,5 +1,5 @@
 import React from 'react';
-import { IoReloadOutline } from 'react-icons/io5';
+
 
 const loading = () => {
   return (
@@ -9,8 +9,8 @@ const loading = () => {
     />
     <div className="grid grid-cols-3 gap-5">
       {/* <IoReloadOutline className="animate-spin m-10 mx-auto" /> */}
-      {[2, 3, 3, 4, 4]?.map((post, ind) => {
-        return <div className='w-full h-40 rounded-md animate-pulse bg-zinc-800' />;
+      {[2, 3, 3, 4, 4]?.map((_,ind) => {
+        return <div key={ind} className='w-full h-40 rounded-md animate-pulse bg-zinc-800' />;
       })}
     </div>
   </div>

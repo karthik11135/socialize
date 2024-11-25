@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {  CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { FaHeart } from 'react-icons/fa6';
 import { FaCommentAlt } from 'react-icons/fa';
@@ -17,6 +17,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@clerk/nextjs';
 import { removeRepostAction, repostAction } from '@/actions/respostActions';
 import { IoReloadOutline } from 'react-icons/io5';
+
 
 interface postInfoProps {
   id: number;
@@ -35,6 +36,10 @@ interface postInfoProps {
 }
 
 const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
+  
+    const { userId } = useAuth();
+    const router = useRouter();
+
   const { toast } = useToast();
   const [countOfLikes, setCountOfLikes] = useState<number>(
     postInfo._count.likes
@@ -47,77 +52,86 @@ const Post = ({ postInfo }: { postInfo: postInfoProps }) => {
   const [repostLoader, setRepostLoader] = useState(false);
   const [likeLoader, setLikeLoader] = useState(false);
 
-  const { userId } = useAuth();
-  const router = useRouter();
-
-  if (!userId) return null;
-
   useEffect(() => {
+    if(!userId) return
     (async () => {
       const resLike = await isLikedAction(postInfo.id, userId);
       if (resLike?.ok) {
         setLiked(true);
       } else setLiked(false);
     })();
-  }, [countOfLikes, userId]);
+  }, [postInfo.id]);
 
   useEffect(() => {
+    if(!userId) return
+    console.log("what is this man");
     (async () => {
       const resRepost = await isRepostedAction(postInfo.id, userId);
       if (resRepost?.ok) {
         setReposted(true);
       } else setReposted(false);
     })();
-  }, [countOfReposts, userId]);
+  }, [postInfo.id]);
+    
+  if (!userId) return null;
+
 
   const likeHandler = async () => {
-    setLikeLoader(true);
-    if (liked) {
-      const res = await removeLikeAction(postInfo.id, userId);
-      if (res) {
-        setLiked(false);
-        setCountOfLikes((prev) => prev - 1);
-        setLikeLoader(false);
+    try {
+      setLikeLoader(true);
+      if (liked) {
+        const res = await removeLikeAction(postInfo.id, userId);
+        if (res) {
+          setLiked(false);
+          setCountOfLikes((prev) => prev - 1);
+          setLikeLoader(false);
+        }
+        return;
       }
-      return;
-    }
 
-    const res = await likePostAction(postInfo.id, userId);
+      const res = await likePostAction(postInfo.id, userId);
 
-    if (res) {
-      setLikeLoader(false);
-      setLiked(true);
-      setCountOfLikes((prev) => prev + 1);
+      if (res) {
+        setLikeLoader(false);
+        setLiked(true);
+        setCountOfLikes((prev) => prev + 1);
+      }
+    } catch (err) {
+      console.log(err);
     }
   };
 
   const repostHandler = async () => {
-    setRepostLoader(true);
-    if (reposted) {
-      const res = await removeRepostAction(postInfo.id, userId);
-      if (res) {
+    try {
+      setRepostLoader(true);
+      if (reposted) {
+        const res = await removeRepostAction(postInfo.id, userId);
+        if (res) {
+          setReposted(true);
+          setCountOfReposts((prev) => prev - 1);
+          setRepostLoader(false);
+          toast({
+            description: 'Your repost removed',
+          });
+        }
+        return;
+      }
+      const res = await repostAction(postInfo.id, userId);
+      if (res?.ok) {
         setReposted(true);
-        setCountOfReposts((prev) => prev - 1);
+        setRepostLoader(false);
+        setCountOfReposts((prev) => prev + 1);
+        toast({
+          description: 'Successfully reposted',
+        });
+      } else {
         setRepostLoader(false);
         toast({
-          description: 'Your repost removed',
+          description: 'You cannot repost your own post / Network issue',
         });
       }
-      return;
-    }
-    const res = await repostAction(postInfo.id, userId);
-    if (res?.ok) {
-      setReposted(true);
-      setRepostLoader(false);
-      setCountOfReposts((prev) => prev + 1);
-      toast({
-        description: 'Successfully reposted',
-      });
-    } else {
-      setRepostLoader(false);
-      toast({
-        description: 'You cannot repost your own post / Network issue',
-      });
+    } catch (err) {
+      console.log(err);
     }
   };
 

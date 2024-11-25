@@ -2,7 +2,6 @@
 import { deletePostByIdAction } from '@/actions/postActions';
 import React, { useState } from 'react';
 import { FaArrowLeftLong } from 'react-icons/fa6';
-import { Button } from '../ui/button';
 import { IoReloadOutline } from 'react-icons/io5';
 
 const DeletePostBtn = ({ postId }: { postId: number }) => {
@@ -19,7 +18,7 @@ const DeletePostBtn = ({ postId }: { postId: number }) => {
       <button
         disabled={loading}
         onClick={deletePostHandler}
-        className="text-red-900 px-2 py-0.5 hover:bg-red-400 rounded cursor-pointer border-none bg-red-300"
+        className="text-slate-200 px-2 py-0.5 hover:bg-red-400 rounded cursor-pointer border-neutral-700 border bg-black"
       >
         {loading ? <IoReloadOutline className="animate-spin" /> : 'del'}
       </button>

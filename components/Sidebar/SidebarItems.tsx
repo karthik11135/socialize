@@ -1,7 +1,6 @@
 import React from 'react';
 import { FaHome } from 'react-icons/fa';
 import { FaPen } from 'react-icons/fa';
-import { FaUserFriends } from 'react-icons/fa';
 import { FaRegUser } from 'react-icons/fa';
 import Link from 'next/link';
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { IoReloadOutline } from 'react-icons/io5';
+
 
 const loading = () => {
   return (
@@ -14,9 +14,9 @@ const loading = () => {
           <div></div>
         </div>
         <div>
-          {[2, 24, 4, 2]?.map(() => {
+          {[2, 24, 4, 2]?.map((_,ind) => {
             return (
-              <div className="relative">
+              <div key={ind} className="relative">
                 <div className="bg-zinc-800 rounded-md w-full h-40 my-3" />
               </div>
             );
