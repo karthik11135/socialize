@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { v2 as cloudinary } from 'cloudinary';
 import { getUserNameFromClerkId } from './userActions';
 import { auth } from '@clerk/nextjs/server';
+import { Prisma } from '@prisma/client';
 
 cloudinary.config({
   cloud_name: 'dyglifgei',
@@ -188,7 +189,7 @@ export const deletePostByIdAction = async (postId: number) => {
     const { userId } = await auth();
     if (!userId) return null;
 
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const deleteRepostedPost = await tx.rePosts.deleteMany({
         where: {
           repostId: postId,

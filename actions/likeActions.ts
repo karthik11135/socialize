@@ -4,7 +4,6 @@ import prisma from '@/lib/db';
 import { revalidatePath } from 'next/cache';
 
 export const likePostAction = async (postId: number, userId: string) => {
-  console.log('did reach here')
   try {
     const likeExists = await prisma.likes.findMany({
       where: {
@@ -13,17 +12,15 @@ export const likePostAction = async (postId: number, userId: string) => {
       },
     });
 
-    console.log(likeExists)
-
     if (likeExists.length > 0) return null;
 
-    const res  = await prisma.likes.create({
+    const res = await prisma.likes.create({
       data: {
         postId,
         userId,
       },
     });
-    console.log(res)
+
     revalidatePath('/profile');
     return { ok: true };
   } catch (err) {

@@ -3,10 +3,12 @@
 import prisma from '@/lib/db';
 import { getUserNameFromClerkId } from './userActions';
 import { revalidatePath } from 'next/cache';
+import { Prisma } from '@prisma/client';
+
 
 export const repostAction = async (postId: number, userId: string) => {
   try {
-    return prisma.$transaction(async (tx) => {
+    return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       const exists = await tx.post.findFirst({
         where: {
           id: postId,
@@ -55,7 +57,7 @@ export const repostAction = async (postId: number, userId: string) => {
 };
 
 export const removeRepostAction = async (postId: number, userId: string) => {
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const exists = await tx.rePosts.findFirst({
       where: {
         postId: postId,
